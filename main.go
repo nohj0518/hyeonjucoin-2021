@@ -11,12 +11,38 @@ type block struct {
 	prevHash string
 }
 
-func main() {
-	fmt.Println("4.1 Our Fist Block!")
-	genesisBlock := block{"Genesis Block", "", ""} // First Block
-	hash := sha256.Sum256([]byte(genesisBlock.data + genesisBlock.prevHash))
-	hexHash := fmt.Sprintf("%x", hash)
-	genesisBlock.hash = hexHash
+type blockchain struct {
+	blocks []block
+}
 
-	fmt.Print(genesisBlock)
+func (b *blockchain) getLastHash() string {
+	if len(b.blocks) > 0 {
+		return b.blocks[len(b.blocks)-1].hash
+	}
+	return ""
+}
+
+func (b *blockchain) addBlock(data string) {
+	newBlock := block{data, "", b.getLastHash()}
+	hash := sha256.Sum256([]byte(newBlock.data + newBlock.prevHash))
+	newBlock.hash = fmt.Sprintf("%x", hash)
+	b.blocks = append(b.blocks, newBlock)
+
+}
+
+func (b *blockchain) listBlocks() {
+	for _, block := range b.blocks {
+		fmt.Printf("Data: %s\n", block.data)
+		fmt.Printf("Hash: %s\n", block.hash)
+		fmt.Printf("PrevHash: %s\n", block.prevHash)
+	}
+}
+
+func main() {
+	fmt.Println("4.2 Our Fist Blockchain!")
+	chain := blockchain{}
+	chain.addBlock("Genesis Block")
+	chain.addBlock("Second Block")
+	chain.addBlock("Third Block")
+	chain.listBlocks()
 }
