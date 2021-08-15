@@ -17,13 +17,13 @@ type homeData struct {
 }
 
 func home(rw http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/home.html"))
+	tmpl := template.Must(template.ParseFiles("templates/home.gohtml"))
 	data := homeData{"Home", blockchain.GetBlockchain().AllBlocks()}
 	tmpl.Execute(rw, data)
 }
 
 func main() {
-	fmt.Println("5.1 Rendering Templates !")
+	fmt.Println("5.2 Rendering Blocks !")
 	http.HandleFunc("/", home)
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
