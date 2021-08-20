@@ -1,7 +1,43 @@
 package main
 
-import "github.com/nohj0518/hyeonjucoin-2021/explorer"
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+)
+const port string = "127.0.0.1:3000"// ":4000"
+
+          
+type URLDescription struct{
+	URL         string `json:"url"`  
+	Method      string `json:"method"`
+	Description string `json:"description"`
+	Payload     string `json:"payload,omitempty"`
+	
+}    
+
+func documentation(rw http.ResponseWriter, r *http.Request){
+	data := []URLDescription{
+		{
+			URL: "/",
+			Method: "GET",
+			Description: "See Documentation",
+		},
+		{
+			URL: "/blocks",
+			Method: "POST",
+			Description: "Add a Block",
+			Payload: "data:string",
+		},
+	}
+	rw.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(data)
+
+}
 
 func main() {
-	explorer.Start()
+	http.HandleFunc("/", documentation)
+	fmt.Printf("Listening on http://%s\n",port)
+	log.Fatal(http.ListenAndServe(port,nil))
 }
