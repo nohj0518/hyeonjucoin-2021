@@ -1,9 +1,29 @@
 package main
 
 import (
-	"github.com/nohj0518/hyeonjucoin-2021/rest"
+	"fmt"
+	"os"
 )
 
+func usage(){
+	fmt.Printf("Welcome to 현주 코인\n\n")
+	fmt.Printf("Please use the following commands:\n\n")
+	fmt.Printf("explorer:	Start the Html Explorer\n")
+	fmt.Printf("rest:	Start the Rest API (recommended)\n\n")
+	os.Exit(0)
+}           
+
+
 func main() {
-	rest.Start("127.0.0.1:3000")
+	if len(os.Args) < 2{
+		usage()
+	}
+	switch os.Args[1] {
+	case "explorer":
+		fmt.Println("Start Explorer")
+	case "rest":
+		fmt.Println("Start REST API")
+	default:
+		usage()
+	}
 }

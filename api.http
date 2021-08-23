@@ -9,4 +9,4 @@ POST http://127.0.0.1:3000/blocks
     "message":"Data for my block"
 }
 ###
-http://127.0.0.1:3000/blocks/1
+http://127.0.0.1:3000/blocks/2
