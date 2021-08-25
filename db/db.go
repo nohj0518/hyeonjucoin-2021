@@ -1,8 +1,6 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/boltdb/bolt"
 	"github.com/nohj0518/hyeonjucoin-2021/utils"
 )
@@ -34,8 +32,11 @@ func DB() *bolt.DB{
 	return db
 }
 
+func Close(){
+	DB().Close()
+}
+
 func SaveBlock(hash string, data []byte ){
-	fmt.Println("Saving Block")
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(blocksBucket))
 		err := bucket.Put([]byte(hash), data)
@@ -44,8 +45,7 @@ func SaveBlock(hash string, data []byte ){
 	utils.HandleErr(err)
 }
 
-func SaveBlockchain(data []byte){
-	fmt.Println("Saving Block Chain")
+func SaveCheckpoint(data []byte){
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket:= t.Bucket([]byte(dataBucket))
 		err := bucket.Put([]byte(checkpoint),data)
@@ -62,4 +62,15 @@ func Checkpoint() []byte {
 		return nil
 	})
 	return data
+}
+
+func Block(hash string) []byte {
+	var data []byte 
+	DB().View(func(t *bolt.Tx) error {
+		bucket := t.Bucket([]byte(blocksBucket))
+		data =bucket.Get([]byte(hash))
+		return nil
+	})
+	return data
+
 }

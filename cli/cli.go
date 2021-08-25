@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/nohj0518/hyeonjucoin-2021/explorer"
 	"github.com/nohj0518/hyeonjucoin-2021/rest"
@@ -14,7 +15,7 @@ func usage(){
 	fmt.Printf("Please use the following flags:\n\n")
 	fmt.Printf("-port:		Set th PORT of the server\n")
 	fmt.Printf("-mode:		Choose between 'html' and 'rest'\n\n")
-	os.Exit(0)
+	runtime.Goexit()
 }      
 
 func Start() {
