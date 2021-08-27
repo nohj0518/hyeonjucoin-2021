@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nohj0518/hyeonjucoin-2021/blockchain"
-	"github.com/nohj0518/hyeonjucoin-2021/utils"
 )
 
 //const port string = "127.0.0.1:3000"// ":4000"
@@ -29,10 +28,6 @@ type urlDescription struct{
 	
 }
 
-type addBlockBody struct {
-	Message string
-}
-
 type errorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
@@ -43,6 +38,11 @@ func documentation(rw http.ResponseWriter, r *http.Request){
 			URL: url("/"),
 			Method: "GET",
 			Description: "See Documentation",
+		},
+		{
+			URL: url("/status"),
+			Method: "GET",
+			Description: "See the Status of the Blockchain",
 		},
 		{ 
 			URL: url("/blocks"),
@@ -64,9 +64,7 @@ func blocks(rw http.ResponseWriter, r *http.Request){
 	case "GET":
 		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
 	case "POST":
-		var addBlockBody addBlockBody
-		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody))
-		blockchain.Blockchain().AddBlock(addBlockBody.Message)
+		blockchain.Blockchain().AddBlock()
 		rw.WriteHeader(http.StatusCreated)
 	}
 }
@@ -90,11 +88,16 @@ func jsonContentTypeMiddlewear(next http.Handler) http.Handler{
 	})
 }
 
+func status (rw http.ResponseWriter, r *http.Request){
+	json.NewEncoder(rw).Encode(blockchain.Blockchain())
+}
+
 func Start(aPort string) {
 	port = aPort
 	router := mux.NewRouter()
 	router.Use(jsonContentTypeMiddlewear)
 	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET","POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
 	fmt.Printf("Listening on http://%s\n", port)
