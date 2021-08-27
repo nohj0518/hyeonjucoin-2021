@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nohj0518/hyeonjucoin-2021/blockchain"
+	"github.com/nohj0518/hyeonjucoin-2021/utils"
 )
 
 //const port string = "127.0.0.1:3000"// ":4000"
@@ -28,8 +29,18 @@ type urlDescription struct{
 	
 }
 
+type balanceResponse struct {
+	Address string `json:"address"`
+	Balance int `json:"balance"`
+}
+
 type errorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
+}
+
+type addTxPayload struct{
+	To     string
+	Amount int
 }
 
 func documentation(rw http.ResponseWriter, r *http.Request){
@@ -54,6 +65,11 @@ func documentation(rw http.ResponseWriter, r *http.Request){
 			URL: url("/blocks/{hash}"),
 			Method: "GET",
 			Description: "See a Block",
+		},
+		{
+			URL: url("/balance/{address}"),
+			Method: "GET",
+			Description: "Get TxOuts for an Address",
 		},
 	}
 	json.NewEncoder(rw).Encode(data)
@@ -92,6 +108,34 @@ func status (rw http.ResponseWriter, r *http.Request){
 	json.NewEncoder(rw).Encode(blockchain.Blockchain())
 }
 
+func balance(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	address := vars["address"]
+	total := r.URL.Query().Get("total")
+	switch total {
+	case "true":
+		amount := blockchain.Blockchain().BalanceByAddress(address)
+		json.NewEncoder(rw).Encode(balanceResponse{address,amount})
+	default:
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().TxOutsByAddress(address)))
+	}
+}
+
+func mempool(rw http.ResponseWriter, r *http.Request){
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool.Txs))
+}
+
+func transactions(rw http.ResponseWriter, r *http.Request){
+	var payload addTxPayload
+	utils.HandleErr(json.NewDecoder(r.Body).Decode(&payload))
+	err := blockchain.Mempool.AddTx(payload.To, payload.Amount)
+	if err != nil {
+		json.NewEncoder(rw).Encode(errorResponse{"Not enough funds"})
+	}
+	rw.WriteHeader(http.StatusCreated)
+}
+
+
 func Start(aPort string) {
 	port = aPort
 	router := mux.NewRouter()
@@ -100,6 +144,9 @@ func Start(aPort string) {
 	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET","POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET")
+	router.HandleFunc("/balance/{address}",balance)
+	router.HandleFunc("/mempool",mempool)
+	router.HandleFunc("/transactions",transactions).Methods("POST")
 	fmt.Printf("Listening on http://%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
