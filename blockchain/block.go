@@ -61,11 +61,11 @@ func createBlock(prevHash string, height int) *Block {
 		Hash:     "",
 		PrevHash: prevHash,
 		Height:   height,
-		Difficulty: Blockchain().difficulty(),
+		Difficulty: difficulty(Blockchain()),
 		Nonce: 0,
-		Transactions: []*Tx{makeCoinbaseTx("hyeonju")},
 	}
 	block.mine()
+	block.Transactions = Mempool.TxToConfirm()
 	block.persist()
 	return block
 }
