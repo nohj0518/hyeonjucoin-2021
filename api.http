@@ -4,7 +4,9 @@ http://127.0.0.1:4000/status
 ###
 http://127.0.0.1:4000/blocks
 ###
-http://127.0.0.1:4000/balance/hyeonju
+http://127.0.0.1:4000/balance/202cd8e35c09f27966c79fca2a2d0e3515ba01078435a85ca8c7f61c927bbda034693159b11cea2f39a2be29074219533c2a53dc5966c6e9b20e01078cd370d7
+###
+http://127.0.0.1:4000/wallet
 ###
 http://127.0.0.1:4000/balance/hyeonju?total=true
 ###
@@ -20,4 +22,4 @@ POST http://127.0.0.1:4000/transactions
 ###
 http://127.0.0.1:4000/mempool
 ###
-http://127.0.0.1:4000/balance/sangkue?total=true
+http://127.0.0.1:4000/balance/sangkue

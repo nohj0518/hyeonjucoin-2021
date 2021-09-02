@@ -1,9 +1,11 @@
 package main
 
 import (
-	"github.com/nohj0518/hyeonjucoin-2021/wallet"
+	"github.com/nohj0518/hyeonjucoin-2021/cli"
+	"github.com/nohj0518/hyeonjucoin-2021/db"
 )
 
 func main() {
-	wallet.Wallet()
+	defer db.Close()
+	cli.Start()
 }

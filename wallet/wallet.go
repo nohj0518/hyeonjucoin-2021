@@ -44,6 +44,7 @@ func persistKey(key *ecdsa.PrivateKey) {
 }
 
 func restoreKey() (key *ecdsa.PrivateKey) {
+	fmt.Println("restoring Key of", fileName)
 	keyAsBytes, err := os.ReadFile(fileName)
 	utils.HandleErr(err)
 	key, err = x509.ParseECPrivateKey(keyAsBytes)
@@ -51,20 +52,24 @@ func restoreKey() (key *ecdsa.PrivateKey) {
 	return
 }
 
-func aFromK(key *ecdsa.PrivateKey) string {
-	// publickey -> address
-	z := append(key.X.Bytes(), key.Y.Bytes()...)
+func encodeBigInts(a, b []byte) string {
+	// big Int interface -> hex string
+	z := append(a, b...)
 	return fmt.Sprintf("%x", z)
 }
 
-func sign(payload string, w *wallet) string {
+func aFromK(key *ecdsa.PrivateKey) string {
+	// publickey -> address
+	return encodeBigInts(key.X.Bytes(), key.Y.Bytes())
+}
+
+func Sign(payload string, w *wallet) string {
 	payloadAsB, err := hex.DecodeString(payload)
 	utils.HandleErr(err)
 	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsB)
 	utils.HandleErr(err)
 
-	signature := append(r.Bytes(), s.Bytes()...)
-	return fmt.Sprintf("%x", signature)
+	return encodeBigInts(r.Bytes(), s.Bytes())
 }
 
 func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
@@ -83,7 +88,7 @@ func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
 
 }
 
-func verify(signature, payload, address string) bool {
+func Verify(signature, payload, address string) bool {
 	r, s, err := restoreBigInts(signature)
 	utils.HandleErr(err)
 	x, y, err := restoreBigInts(address)
@@ -98,7 +103,6 @@ func verify(signature, payload, address string) bool {
 	utils.HandleErr(err)
 	ok := ecdsa.Verify(&publicKey, payloadBytes, r, s)
 	return ok
-
 }
 
 func Wallet() *wallet {
@@ -114,10 +118,9 @@ func Wallet() *wallet {
 			key := createPrivateKey()
 			persistKey(key)
 			w.privateKey = key
-
 		}
 		w.Address = aFromK(w.privateKey)
-
+		fmt.Println("Create Wallet")
 	}
 	return w
 }
