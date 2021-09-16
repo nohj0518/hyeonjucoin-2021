@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nohj0518/hyeonjucoin-2021/blockchain"
+	"github.com/nohj0518/hyeonjucoin-2021/p2p"
 	"github.com/nohj0518/hyeonjucoin-2021/utils"
 	"github.com/nohj0518/hyeonjucoin-2021/wallet"
 )
@@ -75,6 +76,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "GET",
 			Description: "Get TxOuts for an Address",
 		},
+		{
+			URL:         url("/ws"),
+			Method:      "GET",
+			Description: "Upgrade to WebSockets",
+		},
 	}
 	json.NewEncoder(rw).Encode(data)
 }
@@ -101,6 +107,10 @@ func block(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func status(rw http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(rw).Encode(blockchain.Blockchain())
+}
+
 func jsonContentTypeMiddlewear(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Content-Type", "application/json")
@@ -108,8 +118,12 @@ func jsonContentTypeMiddlewear(next http.Handler) http.Handler {
 	})
 }
 
-func status(rw http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(rw).Encode(blockchain.Blockchain())
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL)
+		next.ServeHTTP(rw, r)
+	})
+
 }
 
 func balance(rw http.ResponseWriter, r *http.Request) {
@@ -154,7 +168,7 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 func Start(aPort string) {
 	port = aPort
 	router := mux.NewRouter()
-	router.Use(jsonContentTypeMiddlewear)
+	router.Use(jsonContentTypeMiddlewear, loggerMiddleware)
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/status", status).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
@@ -163,6 +177,7 @@ func Start(aPort string) {
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
+	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	fmt.Printf("Listening on http://%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
