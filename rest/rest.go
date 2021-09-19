@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/nohj0518/hyeonjucoin-2021/blockchain"
@@ -49,7 +50,7 @@ type addTxPayload struct {
 }
 
 type addPeerPayload struct {
-	address, port string
+	Address, Port string
 }
 
 func documentation(rw http.ResponseWriter, r *http.Request) {
@@ -174,8 +175,12 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 	case "POST":
 		var payload addPeerPayload
 		json.NewDecoder(r.Body).Decode(&payload)
-		p2p.AddPeer(payload.address, payload.port)
+		payload_port := strings.Split(port, ":")
+		num_port := fmt.Sprintf(":%s", payload_port[1])
+		p2p.AddPeer(payload.Address, payload.Port, num_port)
 		rw.WriteHeader(http.StatusOK)
+	case "GET":
+		json.NewEncoder(rw).Encode(p2p.Peers)
 	}
 }
 
@@ -192,7 +197,7 @@ func Start(aPort string) {
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
-	router.HandleFunc("/peers", peers).Methods("POSt")
+	router.HandleFunc("/peers", peers).Methods("GET", "POSt")
 	fmt.Printf("Listening on http://%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
