@@ -9,26 +9,52 @@ import (
 var Peers map[string]*peer = make(map[string]*peer)
 
 type peer struct {
-	conn *websocket.Conn
+	key     string
+	address string
+	port    string
+	conn    *websocket.Conn
+	inbox   chan []byte
+}
+
+func (p *peer) close() {
+	p.conn.Close()
+	delete(Peers, p.key)
 }
 
 func (p *peer) read() {
-	// delete peer in case of error
+	defer p.close()
 	for {
 		_, m, err := p.conn.ReadMessage()
 		if err != nil {
+			fmt.Println(err)
 			break
 		}
 		fmt.Printf("%s", m)
 	}
 }
+func (p *peer) write() {
+	defer p.close()
+	for {
+		m, ok := <-p.inbox
+		if !ok {
+			break
+		}
+		p.conn.WriteMessage(websocket.TextMessage, m)
+	}
+}
 
 func initPeer(conn *websocket.Conn, address, port string) *peer {
-	p := &peer{
-		conn,
-	}
 	key := fmt.Sprintf("%s:%s", address, port)
+	p := &peer{
+		conn:    conn,
+		inbox:   make(chan []byte),
+		address: address,
+		key:     key,
+		port:    port,
+	}
+
 	go p.read()
+	go p.write()
 	Peers[key] = p
 	return p
 }
