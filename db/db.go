@@ -1,30 +1,30 @@
 package db
 
 import (
-	"github.com/boltdb/bolt"
 	"github.com/nohj0518/hyeonjucoin-2021/utils"
+	bolt "go.etcd.io/bbolt"
 )
 
 const (
-	dbName = "blockchain.db"
-	dataBucket = "data"
+	dbName       = "blockchain.db"
+	dataBucket   = "data"
 	blocksBucket = "blocks"
-	checkpoint ="checkpoint"
+	checkpoint   = "checkpoint"
 )
 
 var db *bolt.DB
 
-func DB() *bolt.DB{
+func DB() *bolt.DB {
 	if db == nil {
 		// init DB
 		dbPointer, err := bolt.Open(dbName, 0600, nil)
 		db = dbPointer
 		utils.HandleErr(err)
-		
+
 		err = db.Update(func(t *bolt.Tx) error {
-			_, err:= t.CreateBucketIfNotExists([]byte(dataBucket))
+			_, err := t.CreateBucketIfNotExists([]byte(dataBucket))
 			utils.HandleErr(err)
-			_,err = t.CreateBucketIfNotExists([]byte(blocksBucket))
+			_, err = t.CreateBucketIfNotExists([]byte(blocksBucket))
 			return err
 		})
 		utils.HandleErr(err)
@@ -32,11 +32,11 @@ func DB() *bolt.DB{
 	return db
 }
 
-func Close(){
+func Close() {
 	DB().Close()
 }
 
-func SaveBlock(hash string, data []byte ){
+func SaveBlock(hash string, data []byte) {
 	err := DB().Update(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(blocksBucket))
 		err := bucket.Put([]byte(hash), data)
@@ -45,10 +45,10 @@ func SaveBlock(hash string, data []byte ){
 	utils.HandleErr(err)
 }
 
-func SaveCheckpoint(data []byte){
+func SaveCheckpoint(data []byte) {
 	err := DB().Update(func(t *bolt.Tx) error {
-		bucket:= t.Bucket([]byte(dataBucket))
-		err := bucket.Put([]byte(checkpoint),data)
+		bucket := t.Bucket([]byte(dataBucket))
+		err := bucket.Put([]byte(checkpoint), data)
 		return err
 	})
 	utils.HandleErr(err)
@@ -65,10 +65,10 @@ func Checkpoint() []byte {
 }
 
 func Block(hash string) []byte {
-	var data []byte 
+	var data []byte
 	DB().View(func(t *bolt.Tx) error {
 		bucket := t.Bucket([]byte(blocksBucket))
-		data =bucket.Get([]byte(hash))
+		data = bucket.Get([]byte(hash))
 		return nil
 	})
 	return data

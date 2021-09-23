@@ -164,9 +164,7 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 	address := wallet.Wallet().Address
 	//json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
 	// 위 문장을 아래와 같이 쓸 수 있음
-	json.NewEncoder(rw).Encode(struct {
-		Address string `json:"address"`
-	}{Address: address})
+	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
 
 }
 
@@ -180,7 +178,7 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 		p2p.AddPeer(payload.Address, payload.Port, num_port)
 		rw.WriteHeader(http.StatusOK)
 	case "GET":
-		json.NewEncoder(rw).Encode(p2p.Peers)
+		json.NewEncoder(rw).Encode(p2p.AllPeers(&p2p.Peers))
 	}
 }
 
