@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/nohj0518/hyeonjucoin-2021/blockchain"
@@ -14,13 +13,12 @@ import (
 	"github.com/nohj0518/hyeonjucoin-2021/wallet"
 )
 
-//const port string = "127.0.0.1:3000"// ":4000"
 var port string
 
 type url string
 
 func (u url) MarshalText() ([]byte, error) {
-	url := fmt.Sprintf("http://%s%s", port, u)
+	url := fmt.Sprintf("http://localhost%s%s", port, u)
 	return []byte(url), nil
 }
 
@@ -173,17 +171,15 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 	case "POST":
 		var payload addPeerPayload
 		json.NewDecoder(r.Body).Decode(&payload)
-		payload_port := strings.Split(port, ":")
-		num_port := fmt.Sprintf(":%s", payload_port[1])
-		p2p.AddPeer(payload.Address, payload.Port, num_port)
+		p2p.AddPeer(payload.Address, payload.Port, port)
 		rw.WriteHeader(http.StatusOK)
 	case "GET":
 		json.NewEncoder(rw).Encode(p2p.AllPeers(&p2p.Peers))
 	}
 }
 
-func Start(aPort string) {
-	port = aPort
+func Start(aPort int) {
+	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()
 	router.Use(jsonContentTypeMiddlewear, loggerMiddleware)
 	router.HandleFunc("/", documentation).Methods("GET")
@@ -196,6 +192,6 @@ func Start(aPort string) {
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/peers", peers).Methods("GET", "POSt")
-	fmt.Printf("Listening on http://%s\n", port)
+	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

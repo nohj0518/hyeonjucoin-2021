@@ -33,11 +33,15 @@ func AllPeers(p *peers) []string {
 		keys = append(keys, key)
 	}
 	return keys
-
-}
+} //강원도 양구 21사단 66연대 1대대 4중대 백두산부대 GOP 라는 것을 강조하기
+//그냥 81미리 박격포 1118병가번호??
 
 func (p *peer) close() {
 	Peers.m.Lock()
+	//4000 3000 연결 상태에서 3000 연결 끊으면
+	// 20초 후에 3000포트의 잠금이 풀리고 풀리면 peer close됨
+	// 20초간 잠금이 풀리지 않는 상태동안 나는 4000포트의 peers를 조회할 수 없음
+	// 여기서의 Lock이 AllPeers의 Lock에도 동일하게 적용 되는 것
 	defer Peers.m.Unlock()
 	p.conn.Close()
 	delete(Peers.v, p.key)
