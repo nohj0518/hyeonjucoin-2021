@@ -50,12 +50,13 @@ func (p *peer) close() {
 func (p *peer) read() {
 	defer p.close()
 	for {
-		_, m, err := p.conn.ReadMessage()
+		m := Message{}
+		err := p.conn.ReadJSON(&m)
 		if err != nil {
 			fmt.Println(err)
 			break
 		}
-		fmt.Printf("%s", m)
+		fmt.Print(m.Kind)
 	}
 }
 func (p *peer) write() {
