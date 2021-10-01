@@ -24,7 +24,7 @@ http://localhost:4000/mempool
 ###
 http://localhost:4000/balance/sangkue
 
-###W
+###
 POST http://localhost:4000/peers
 
 {
